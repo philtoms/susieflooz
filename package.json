@@ -1,0 +1,17 @@
+{
+  "name": "ljs",
+  "description": "Static Website",
+  "version": "0.0.1",
+  "author": "Phil Toms <phil.toms@hotmail.co.uk>",
+  "repository": {"type": "git", "url": "git://github.com/philtoms/ljs.git"},
+  "dependencies": {
+    "coffee-script": "1.2.0",
+    "zappa": "> 0.3.0",
+    "nstore": "> 0.5.0",
+    "express": "< 3.0.0",
+    "socket.io": "0.8.x",
+    "coffeekup": "0.3.x",
+    "node-uuid": "1.2.0",
+    "uglify-js": "1.1.x"
+  }
+}
