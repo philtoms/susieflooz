@@ -11,11 +11,18 @@ myZappa = (port,db,app) ->
  store = require('./lib/nstore').extend(require('./lib/nstore/query')()).new db, ->
   
   zappa port, -> # passes this fn to zappa.run
+
+    @store = store
+    viewsync = null
     
+    @store.get 'app', (err,data) =>
+      @appData = data
+      @include './lib/viewsync' 
+      @include './article'
+      viewsync = @viewsync
+  
     @use @express.bodyParser({uploadDir:'./public/uploads'}), @app.router, 'static', 'cookies'
  
-    @store = store
-
     @nav = (routes, sort) ->
       for i, r of routes
         do(i,r) =>
@@ -32,7 +39,7 @@ myZappa = (port,db,app) ->
           
           routeHandler[r] = ->
             id = toText r,'index'
-            page ?= (key) -> key.indexOf(id)==0
+            page ?= (key) -> key.indexOf('page/'+id)==0
             
             store.find page, (e,d) =>
               if (e) then console.log e.toString()
@@ -40,9 +47,9 @@ myZappa = (port,db,app) ->
               view[id] =
                 id: id
                 data: new data d, sort
-                tailscript: '/googlea'
                 nav: routes
                 toTitle: toTitle
+                viewsync: viewsync
               
               @render view
             

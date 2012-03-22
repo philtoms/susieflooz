@@ -114,6 +114,11 @@ nav a[href='/contactme'] {
   background:none;
 }
 
+#login {position:absolute;left:300px;top:300px;background-color:#555;color:white;padding:10px;}
+#login label {display:block;padding:5px 0;text-align:right;width:235px;}
+#login input {margin:0 10px;}
+
+#cmdbar {display:none;}
 #cmdbar object {float:left;}
 #cmdbar a {display:inline-block;padding:6px 10px;background-color:#555;color:white;margin:-1px 1px 2px;}
 

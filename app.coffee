@@ -1,13 +1,12 @@
 susieflooz = (port) ->
- require('./myZappa') port, 'blog1.db', ->
+ require('./myZappa') port, 'blog.db', ->
 
-  @include './lib/viewsync' 
   @root = __dirname
 
   @io.set 'log level', 1
 
   @nav [
-    '/': -> true # filter all pages
+    '/': (k) -> k.indexOf('page/')==0 # filter all pages
     '/Cookery'
     '/Gardening'
     '/ContactMe'

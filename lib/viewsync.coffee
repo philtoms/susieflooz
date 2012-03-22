@@ -2,8 +2,40 @@
   rename = require('fs').rename
   @on 'connection': ->
     console.log 'connect' 
- 
+
+  @viewsync = -> 
+    '''<script>
+      head.ready(document,function(){
+        head.js(
+        '/googlea.js'
+        ,'https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'
+        ,function(){
+          $('#scrapbook').click(function(e){
+            if (e.altKey){
+              $('#scrapbook').unbind('click');
+              head.js(
+               '/socket.io/socket.io.js'
+              ,'/zappa/zappa.js'
+              ,'./viewsync.js'
+              ,function(){
+               //console.log("done");
+              });
+            }
+          });
+        });
+      });
+    </script>'''
+
   root=@root
+  appData=@appData
+  
+  @post '/login' : ->
+    b = @request.body
+    if appData.users[b.user] == b.pwd
+      @send 'ok'
+    else
+      @send ''
+      
   @post '/upload' : ->
     file = @request.files.Filedata
     dest = root+'/public/images/'+(@body.path ? '')+file.name
@@ -21,11 +53,36 @@
 
   @client '/viewsync.js': ->
     io = this
-    @connect()
-    $ ->
+    login = $("<form id='login'>
+                 <label>Name<input name='user'/></label>
+                 <label>Password<input type='password' name='pwd'></label>
+                 <label><input type='button' value='Submit'/><input type='button' value='Cancel'/></label>
+               </form>");
 
+    login.appendTo('body')
+    $("input[name='user']").focus()
+    $("#login input[type='button']").click (e) ->
+      if e.target.value=='Cancel'
+        $("#login").hide()
+        return false
+         
+      $.post '/login', $("#login").serialize(), (r) ->
+        if 'ok'
+          $("#login").hide()
+          head.js(
+             '/scripts/uploadify/jquery.uploadify.min.js'
+            ,'/scripts/uploadify/swfobject.js'
+            ,'./article.js'
+            ,edit
+          )
+           
+      return false
+      
+    edit = =>
       cmdBar = $("<div id='cmdbar'><input id='file_upload' name='file_upload' type='file'><a href='#new'>New article</a><a href='#save'>Save this article</a><a href='#cancel'>Cancel</a></div>");
-      cmdBar.hide().appendTo('body')
+      cmdBar.appendTo('body')
+
+      @connect()
 
       savedRange=false
       saveSelection = ->
