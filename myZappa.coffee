@@ -13,6 +13,8 @@ myZappa = (port,db,app) ->
   zappa port, -> # passes this fn to zappa.run
 
     @store = store
+    @root = __dirname
+
     viewsync = null
     
     @store.get 'app', (err,data) =>

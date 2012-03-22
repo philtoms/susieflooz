@@ -65,9 +65,9 @@
       if e.target.value=='Cancel'
         $("#login").hide()
         return false
-         
+
       $.post '/login', $("#login").serialize(), (r) ->
-        if 'ok'
+        if r=='ok'
           $("#login").hide()
           head.js(
              '/scripts/uploadify/jquery.uploadify.min.js'

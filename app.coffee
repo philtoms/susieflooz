@@ -1,10 +1,8 @@
 susieflooz = (port) ->
  require('./myZappa') port, 'blog.db', ->
 
-  @root = __dirname
-
   @io.set 'log level', 1
-
+  app = this
   @nav [
     '/': (k) -> k.indexOf('page/')==0 # filter all pages
     '/Cookery'
@@ -13,9 +11,9 @@ susieflooz = (port) ->
     ]
     ,(s1,s2) -> 
       Date.parse(s2.date) - Date.parse(s1.date)
-  
+
   @post '/sendform' : ->
-    require('./sendmail').send.call(this, @request)
+    #require('./sendmail').send.call(this, @request,app.appData.email)
     @redirect '/'
  
   @js '/googlea.js': '''
