@@ -7,23 +7,33 @@ mock fakes =
   brk : -> #require('brk') in context scope
   
   zappa : (port,fn) -> new -> 
+    @include = ->
+    @use = ->
+    @app = {}
+    @params = null
+    @express =
+      bodyParser: -> 
     @get = (rh) ->
       capture.route = rh
-      rh['/route'].call(this)
+      rh['/test/:id?'].call(this)
     @render = (v) ->
       capture.view = v
     capture.port = port
     fn.call(this)
 
-  nstore : 
-      extend : -> fakes.nstore
+  './lib/data': -> {}
+  nstore: -> fakes['./lib/nstore']
+  './lib/nstore' : 
+      extend : -> fakes.nstore()
       new : (db, fn) -> 
         process.nextTick -> fn()
-        fakes.nstore
+        fakes.nstore()
+      get : (key, fn) ->
+        fn()
       find : (q,fn) -> 
         fn()
   
-  './lib/nstore.query' : ->
+  './lib/nstore/query' : ->
   
 sut = require '../myZappa.coffee'
       
@@ -34,7 +44,7 @@ vows
     'setup':
       topic: 
         sut 123,"db",-> 
-          @nav ['/Route']
+          @nav ['/Test']
           this.callback
 
        'setup ok': ->
@@ -50,16 +60,16 @@ vows
     'register route':
       topic: -> capture.route
         
-      'we get route': (topic) ->
+      'we get test': (topic) ->
         for r of topic
-          assert.equal r, '/route'
+          assert.equal r, '/test/:id?'
           assert.isFunction topic[r]
 
     'create view':
       topic: -> capture.view
   
       'we get view': (topic) ->
-        assert.equal topic.route.id, 'route'
+        assert.equal topic.test.route, 'test'
 
   .run()
   
