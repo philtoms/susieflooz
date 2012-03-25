@@ -7,13 +7,9 @@ html lang:'en', ->
     #meta name:'viewport', content:'user-scalable=no'
     meta name:'google-site-verification', content:'XP3TLQI7dFpP_gMFBgpGcs0Xamm4ETkYNURfh7OPHwg'
     title @title if @title
-    link rel: 'stylesheet', href: 'http://fonts.googleapis.com/css?family=IM+Fell+DW+Pica+SC' 
-    link rel: 'stylesheet', href: 'style/basestyle.css'
-#    link rel: 'stylesheet', href: '/scripts/uploadify/uploadify.css'
-#    script src:'/modernizr.js'
-#    script src:'http://ajax.aspnetcdn.com/ajax/modernizr/modernizr-1.7-development-only.js'
     script src:'/scripts/head.js'
-    text @viewsync()
+    script "googleId='#{@appData.google}'; issueNo=#{@appData.issueNo};"
+    script @viewsync()
     if @scripts
       for s in @scripts
         if typeof s is 'object'
@@ -25,6 +21,9 @@ html lang:'en', ->
           text "<script>#{@script.inline}</script>" 
       else  
         script(src: @script + '.js')
+    link rel: 'stylesheet', href: 'http://fonts.googleapis.com/css?family=IM+Fell+DW+Pica+SC' 
+    link rel: 'stylesheet', href: '/style/basestyle.css'
+#    link rel: 'stylesheet', href: '/scripts/uploadify/uploadify.css'
     if @stylesheets
       for s in @stylesheets
         if typeof s is 'object'
@@ -38,14 +37,14 @@ html lang:'en', ->
       style @iehack
       text '<![endif]-->'
 
-  body id:@id, ->
+  body id:@route, ->
     div id:'body', ->
       header ->
-        h1 "Issue No #{@data[0].issue}"
+        h1 "Issue No #{@appData.issueNo}"
 
       nav ->
         ul ->
-          for r in @nav
+          for r in @routes
             li -> 
               a href:r.toLowerCase(), -> @toTitle(r,'Articles')
               

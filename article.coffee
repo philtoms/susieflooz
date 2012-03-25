@@ -1,4 +1,7 @@
 @include = ->
+  @onSave = (data, a, d) ->
+     d.headerImg = data.headerImg if data.headerImg
+  
   @client '/article.js': ->
     window.articleTemplate = (id) ->
       article = document.createElement("article")
@@ -21,12 +24,15 @@
       p.className="left edit"
       p.innerHTML = "Article..."
       d = new Date()
+      header.setAttribute('data-time',d.toDateString())
       mmm = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-      time.id=d.toDateString()
       time.innerHTML = d.getDate() + " " + mmm[d.getMonth()] + " " + d.getFullYear().toString().substr(2)
       clear.className="clear"
       return article
 
+    window.onSave = (id,issueNo) ->
+      $("header h1").text "Issue No "+issueNo
+      
     window.onUpload = (article,fileName) ->
       img = "<img class='edit' src='/images/gallery/{name}' />".replace(/{name}/g,fileName)
       $(".body",article).prepend(img)

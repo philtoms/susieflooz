@@ -1,10 +1,12 @@
 @include = ->
+  @include('article')
   rename = require('fs').rename
+
   @on 'connection': ->
     console.log 'connect' 
 
   @viewsync = -> 
-    '''<script>
+    '''
       head.ready(document,function(){
         head.js(
         '/googlea.js'
@@ -16,7 +18,7 @@
               head.js(
                '/socket.io/socket.io.js'
               ,'/zappa/zappa.js'
-              ,'./viewsync.js'
+              ,'/viewsync.js'
               ,function(){
                //console.log("done");
               });
@@ -24,17 +26,14 @@
           });
         });
       });
-    </script>'''
+    '''
 
   root=@root
-  appData=@appData
+  appData=@data
   
   @post '/login' : ->
     b = @request.body
-    if appData.users[b.user] == b.pwd
-      @send 'ok'
-    else
-      @send ''
+    @send if appData.users[b.user] == b.pass then 'ok' else ''
       
   @post '/upload' : ->
     file = @request.files.Filedata
@@ -44,35 +43,43 @@
     @send('Success!')
 
   store = @store
+  onSave = @onSave
   @on sync: ->
     data = @data
-    store.get @data.id, (e,d,k) ->
+    id = data.id.replace(/-/g,'/')
+    store.get id, (e,d,k) ->
       if !d || d.article!=data.article
-        store.save data.id,{article:data.article,date:data.date},->
-          console.log "updated " + data.id
+        (d ?={}).article = data.article
+        d.date = data.date
+        onSave data, appData, d
+        store.save id,d,->
+          appData.issueNo = data.issueNo
+          store.save "app", appData, ->
+            console.log "updated " + id
 
   @client '/viewsync.js': ->
     io = this
+    left = $(window).width() / 2 - 150
+    top = $(window).height() / 2 - 60
     login = $("<form id='login'>
                  <label>Name<input name='user'/></label>
-                 <label>Password<input type='password' name='pwd'></label>
+                 <label>Password<input type='password' name='pass'></label>
                  <label><input type='button' value='Submit'/><input type='button' value='Cancel'/></label>
-               </form>");
+               </form>").css({top:top,left:left}).appendTo('body')
 
-    login.appendTo('body')
-    $("input[name='user']").focus()
-    $("#login input[type='button']").click (e) ->
+    $("input[name='user']",login).focus()
+    $("input[type='button']",login).click (e) ->
       if e.target.value=='Cancel'
-        $("#login").hide()
+        login.hide()
         return false
 
-      $.post '/login', $("#login").serialize(), (r) ->
+      $.post '/login', login.serialize(), (r) ->
         if r=='ok'
-          $("#login").hide()
+          login.hide()
           head.js(
              '/scripts/uploadify/jquery.uploadify.min.js'
             ,'/scripts/uploadify/swfobject.js'
-            ,'./article.js'
+            ,'/article.js'
             ,edit
           )
            
@@ -133,7 +140,7 @@
         section=null
         empty=''
         unchanged=''
-        focusTag={};
+        focusTag={}
         root=$('body')[0].id
 
         toggle: (e) ->
@@ -156,7 +163,8 @@
           switch e.target.href?.split('#')[1]
             when "save"
               contentEdit false
-              io.emit sync: {id:root+'/'+article[0].id,article:article.html(),date:articleDate} 
+              io.emit sync: {id:article[0].id,article:article.html(),date:articleDate, issueNo:issueNo} 
+              onSave article[0].id,issueNo
               
             when "cancel"
               if article.html() == empty
@@ -167,7 +175,7 @@
 
             when "new"
               contentEdit false
-              id = section.find("article").length+1
+              id = 'page-'+root+'-' + (++issueNo)
               section.prepend articleTemplate id
               article = $("#"+id)
               article.before cmdBar.show()
@@ -193,7 +201,7 @@
           edit = article.find(".edit")
           if editable
             edit.attr("contentEditable",true)
-            articleDate = article.find("time")[0].id;
+            articleDate = article.find("[data-time]").data("time");
             restoreSelection edit
           else
             edit.removeAttr("contentEditable")

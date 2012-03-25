@@ -14,13 +14,13 @@ myZappa = (port,db,app) ->
 
     @store = store
     @root = __dirname
-
+    @data = null
     viewsync = null
+    appData = null
     
     @store.get 'app', (err,data) =>
-      @appData = data
+      @data = appData = data
       @include './lib/viewsync' 
-      @include './article'
       viewsync = @viewsync
   
     @use @express.bodyParser({uploadDir:'./public/uploads'}), @app.router, 'static', 'cookies'
@@ -39,17 +39,19 @@ myZappa = (port,db,app) ->
 
           routeHandler = {} #use this syntax to get a variable into a key
           
-          routeHandler[r] = ->
-            id = toText r,'index'
-            page ?= (key) -> key.indexOf('page/'+id)==0
+          routeHandler[r+'/:id?'] = ->
+            route = toText r,'index'
+            page ?= (key) -> key.indexOf('page/'+route)==0
             
             store.find page, (e,d) =>
               if (e) then console.log e.toString()
               view = {}
-              view[id] =
-                id: id
+              view[route] =
+                params: @params
+                route: route
+                routes: routes
+                appData: appData
                 data: new data d, sort
-                nav: routes
                 toTitle: toTitle
                 viewsync: viewsync
               
