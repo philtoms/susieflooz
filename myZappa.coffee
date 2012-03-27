@@ -1,3 +1,4 @@
+debugger
 myZappa = (port,db,app) -> 
 
  # wrap zappa with extras, then run app in 'myZappa' context

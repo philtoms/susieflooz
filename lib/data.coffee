@@ -1,4 +1,4 @@
-module.exports = (d,s) ->
+data = (d,s) ->
   toArray = (d) ->
     if typeof d is "object"
       for k,v of d
@@ -18,3 +18,6 @@ module.exports = (d,s) ->
   if s? then d = [].sort.call d, s 
   [].push.apply this, d
   return this
+
+  #note return syntax required for injectr
+return module.exports = data

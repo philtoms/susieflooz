@@ -4,18 +4,18 @@ assert = require 'assert'
 capture = {}
 
 mock fakes =
-  brk : -> #require('brk') in context scope
-  
   zappa : (port,fn) -> new -> 
     @include = ->
     @use = ->
     @app = {}
-    @params = null
+    @params = {}
     @express =
       bodyParser: -> 
-    @get = (rh) ->
+    @get = (rh) =>
       capture.route = rh
-      rh['/test/:id?'].call(this)
+      for r of rh
+        @params.id = r.split('/')[0]
+        rh[r].call(this)
     @render = (v) ->
       capture.view = v
     capture.port = port
@@ -49,7 +49,7 @@ vows
           this.callback
 
        'setup ok': ->
-          
+
   .addBatch
 
     'accept port':
@@ -61,7 +61,7 @@ vows
     'register route':
       topic: -> capture.route
         
-      'we get test': (topic) ->
+      'we get test/1': (topic) ->
         for r of topic
           assert.equal r, '/test/:id?'
           assert.isFunction topic[r]
