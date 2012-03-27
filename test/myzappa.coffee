@@ -22,6 +22,7 @@ mock fakes =
     fn.call(this)
 
   './lib/data': -> {}
+
   nstore: -> fakes['./lib/nstore']
   './lib/nstore' : 
       extend : -> fakes.nstore()

@@ -7,5 +7,5 @@ git add -A -- add + rm
 git commit -a -m "msg"
 git push
 git push git@github.com:philtoms/ljs.git
-
+git reset head -- to master
 node test/ivows.js test/mytest.coffee
