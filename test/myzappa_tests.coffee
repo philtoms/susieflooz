@@ -5,8 +5,11 @@ capture = {}
 
 mock fakes =
   zappa : (port,fn) -> new -> 
+    capture={}
     capture.app = this
-
+    capture.port = port
+    capture.routeHandler=[]
+    
     @include = ->
     @use = ->
     @app = {}
@@ -16,11 +19,10 @@ mock fakes =
     @get = (rh) ->
       capture.app.params.id=1
       for r of rh
-        capture.routeHandler = rh
+        capture.routeHandler.push rh
         rh[r].call(this)
     @render = (v) ->
       capture.view = v
-    capture.port = port
     fn.call(this)
 
   './lib/data': -> {}
@@ -38,48 +40,57 @@ mock fakes =
   
   './lib/nstore/query' : ->
   
-sut = require '../myZappa.coffee'
-      
 vows
   .describe('myZappa')
   .addBatch
 
-    'setup':
-      topic: 
-        sut 123,"db",-> 
-          @nav ['/Test']
-          this.callback
+    'Given that an app is created on port 123 with access to data at db':
+      topic: ->
+        cb=this.callback
+        require('../myZappa.coffee') 123,"db",-> 
+          @nav ['ATest:index']
+          cb()
+        
+      'the app should be listening on port 123': ->
+        assert.equal capture.port, 123
 
-       'setup ok': ->
+      'a shared data store object should be available': ->
+        assert.isFunction capture.app.store.find
+        assert.isFunction capture.app.store.get
+        assert.isFunction capture.app.store.data
+
+      'the route should be registered with a handler':  ->
+        for r of capture.routeHandler[0]
+          assert.equal r, '/:id?'
+          assert.isFunction capture.routeHandler[0][r]
+
+      'the route viewmodel should be created': ->
+        assert.equal capture.view.index.route, "index"
+        assert.equal capture.view.index.routes[0].route, '/'
+        assert.equal capture.view.index.params.id, 1
+            
+      'the route title should be Capitalised with spaces': (topic) ->
+        assert.equal capture.view.index.routes[0].title, 'A test'
 
   .addBatch
 
-    'accept port':
-      topic: -> capture.port
-  
-      'we get 123': (topic) ->
-        assert.equal topic, 123
-
-    'register route handler':
-      topic: -> capture.routeHandler
+    'Given that an app is created with a range of routes':
+      topic:  ->
+        cb=this.callback
+        require('../myZappa.coffee') 123,"db",-> 
+          @nav [
+            'A'
+            'B:index'
+            'C'
+          ]
+          cb()
         
-      'Should register function keyed by route': (topic) ->
-        for r of topic
-          assert.equal r, '/test/:id?'
-          assert.isFunction topic[r]
+      'all routes should be registered with a handler':  ->
+        for rh in capture.routeHandler
+          for r of rh
+            assert.isFunction rh[r]
 
-    'route to view':
-      topic: -> capture.view
       
-      'should create view model for route': (topic) ->
-        assert.equal topic.test.route, 'test'
-        assert.equal topic.test.routes[0], '/Test'
-        assert.equal topic.test.params.id, 1
-        
-    'a camelCase route': 
-      topic: -> capture.view.test.toTitle("/ACamelCaseView")
-    
-      'should generate a title with leading Capital and spaces': (topic) ->
-        assert.equal topic, 'A camel case view'
+  
   .run()
   

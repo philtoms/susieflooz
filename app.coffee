@@ -7,10 +7,10 @@ susieflooz = (port) ->
   app = this
 
   @nav [
-      '/'
-      '/Cookery'
-      '/Gardening'
-      '/ContactMe'
+      'Articles:index'
+      'Cookery'
+      'Gardening'
+      'ContactMe'
     ]
 
   @post '/sendform' : ->

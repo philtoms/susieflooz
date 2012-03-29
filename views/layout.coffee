@@ -46,7 +46,7 @@ html lang:'en', ->
         ul ->
           for r in @routes
             li -> 
-              a href:r.toLowerCase(), -> @toTitle(r,'Articles')
+              a href:r.route, -> r.title
               
       text @body
       footer id:'scrapbook', -> 'Scrapbook &copy; 2012 Pts'

@@ -3,9 +3,13 @@ myZappa = (port,db,app) ->
  # wrap zappa with extras, then run app in 'myZappa' context
 
  #helpers to convert a route to text, and then from camelCase to spaced words
- toText = (r,t) -> if r=='/' then t else r.substr(1)
- toTitle = (r,t) -> toText(r,t).replace(/([A-Z])/g, (m)->' '+m.toLowerCase())
-                               .replace(/^../, (m)->m.substr(1).toUpperCase())
+ toRoute = (r) -> if (s=r.toLowerCase().split(':')).length==1 
+                    '/'+s[0]+'/' 
+                  else 
+                    if s[1]=='index' then '/' else '/'+s[1]+'/'
+ toName  = (r) -> if (s=r.toLowerCase().split(':')).length==1 then s[0] else s[1]
+ toTitle = (r) -> r.split(':')[0].replace(/([A-Z])/g, (m)->' '+m.toLowerCase())
+                                 .replace(/^../, (m)->m.substr(1).toUpperCase())
 
  nstore = require('./lib/nstore').extend(require('./lib/nstore/query')()).new db, ->
   
@@ -33,30 +37,32 @@ myZappa = (port,db,app) ->
       viewsync = @viewsync
   
     @nav = (routes) ->
-      for i, r of routes
-        do(i,r) =>
-          r = r.toLowerCase()
-          route = toText r,'index'
-
+      for t,i in routes
+        routes[i] = 
+          route: toRoute t
+          name:  toName t
+          title: toTitle t
+        r=routes[i]
+        do(r) =>
+          
           try
-            ctrlr = controllers[route] = (require './controllers/'+route) || controllers.default
+            ctrlr = controllers[r.name] = (require './controllers/'+r.name) || controllers.default
           catch err
             ctrlr = controllers.default
           
           #use this syntax to get a variable into a key
           routeHandler = {} 
-          routeHandler[r+'/:id?'] = ->
+          routeHandler[r.route+':id?'] = ->
 
             view = {}
-            view[route] =
+            view[r.name] =
               params: @params
-              route: route
+              route: r.name
               routes: routes
               appData: appData
-              toTitle: toTitle
               viewsync: viewsync
 
-            ctrlr store, view[route], (err) =>
+            ctrlr store, view[r.name], (err) =>
               if (err) then console.log err.toString()
               @render view
             
