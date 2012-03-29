@@ -8,4 +8,6 @@ git commit -a -m "msg"
 git push
 git push git@github.com:philtoms/ljs.git
 git reset head -- to master
-node test/ivows.js test/mytest.coffee
+
+sudo su
+supervisor -w . -e coffee -n exit -q test.js

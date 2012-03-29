@@ -1,4 +1,3 @@
-debugger
 myZappa = (port,db,app) -> 
 
  # wrap zappa with extras, then run app in 'myZappa' context
@@ -8,54 +7,57 @@ myZappa = (port,db,app) ->
  toTitle = (r,t) -> toText(r,t).replace(/([A-Z])/g, (m)->' '+m.toLowerCase())
                                .replace(/^../, (m)->m.substr(1).toUpperCase())
 
- data = require('./lib/data')
- store = require('./lib/nstore').extend(require('./lib/nstore/query')()).new db, ->
+ nstore = require('./lib/nstore').extend(require('./lib/nstore/query')()).new db, ->
   
   zappa port, -> # passes this fn to zappa.run
-
-    @store = store
+    store = @store = 
+      find: (k,cb) -> nstore.find k,cb
+      get: (k,cb) -> nstore.get k,cb
+      data: require('./lib/data')
+        
     @root = __dirname
     @data = null
     viewsync = null
     appData = null
+    controllers = 
+      default: (require './controllers/default') || (store, route, cb) ->
+        if cb
+          store.find store.page, (e,d) -> cb(e,d)
+
+    controllers.default @store
     
     @store.get 'app', (err,data) =>
+      if (err) then console.log err.toString()
       @data = appData = data
       @include './lib/viewsync' 
       viewsync = @viewsync
   
-    @use @express.bodyParser({uploadDir:'./public/uploads'}), @app.router, 'static', 'cookies'
- 
-    @nav = (routes, sort) ->
+    @nav = (routes) ->
       for i, r of routes
         do(i,r) =>
-          if typeof r is 'object'
-            for k,v of r
-              r = k
-              page = v
-          else page = null
-
-          routes[i]=r
           r = r.toLowerCase()
+          route = toText r,'index'
 
-          routeHandler = {} #use this syntax to get a variable into a key
+          try
+            ctrlr = controllers[route] = (require './controllers/'+route) || controllers.default
+          catch err
+            ctrlr = controllers.default
           
+          #use this syntax to get a variable into a key
+          routeHandler = {} 
           routeHandler[r+'/:id?'] = ->
-            route = toText r,'index'
-            page ?= (key) -> key.indexOf('page/'+route)==0
-            
-            store.find page, (e,d) =>
-              if (e) then console.log e.toString()
-              view = {}
-              view[route] =
-                params: @params
-                route: route
-                routes: routes
-                appData: appData
-                data: new data d, sort
-                toTitle: toTitle
-                viewsync: viewsync
-              
+
+            view = {}
+            view[route] =
+              params: @params
+              route: route
+              routes: routes
+              appData: appData
+              toTitle: toTitle
+              viewsync: viewsync
+
+            ctrlr store, view[route], (err) =>
+              if (err) then console.log err.toString()
               @render view
             
           @get routeHandler

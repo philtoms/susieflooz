@@ -1,17 +1,17 @@
 susieflooz = (port) ->
  require('./myZappa') port, 'blog.db', ->
 
+  @use @express.bodyParser({uploadDir:'./public/uploads'}), @app.router, 'static', 'cookies'
+ 
   @io.set 'log level', 1
   app = this
 
   @nav [
-    '/': (k) -> k.indexOf('page/')==0 # filter all pages
-    '/Cookery'
-    '/Gardening'
-    '/ContactMe'
+      '/'
+      '/Cookery'
+      '/Gardening'
+      '/ContactMe'
     ]
-    ,(s1,s2) -> 
-      Date.parse(s2.date) - Date.parse(s1.date)
 
   @post '/sendform' : ->
     require('./lib/sendmail').send.call(this, @request,app.data.email)

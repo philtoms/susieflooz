@@ -1,7 +1,7 @@
 @include = ->
   @onSave = (data, a, d) ->
      d.headerImg = data.headerImg if data.headerImg
-  
+
   @client '/article.js': ->
     window.articleTemplate = (id) ->
       article = document.createElement("article")

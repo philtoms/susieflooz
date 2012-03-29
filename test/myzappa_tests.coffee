@@ -5,16 +5,18 @@ capture = {}
 
 mock fakes =
   zappa : (port,fn) -> new -> 
+    capture.app = this
+
     @include = ->
     @use = ->
     @app = {}
     @params = {}
     @express =
       bodyParser: -> 
-    @get = (rh) =>
-      capture.route = rh
+    @get = (rh) ->
+      capture.app.params.id=1
       for r of rh
-        @params.id = r.split('/')[0]
+        capture.routeHandler = rh
         rh[r].call(this)
     @render = (v) ->
       capture.view = v
@@ -58,19 +60,26 @@ vows
       'we get 123': (topic) ->
         assert.equal topic, 123
 
-    'register route':
-      topic: -> capture.route
+    'register route handler':
+      topic: -> capture.routeHandler
         
-      'we get test/1': (topic) ->
+      'Should register function keyed by route': (topic) ->
         for r of topic
           assert.equal r, '/test/:id?'
           assert.isFunction topic[r]
 
-    'create view':
+    'route to view':
       topic: -> capture.view
-  
-      'we get view': (topic) ->
+      
+      'should create view model for route': (topic) ->
         assert.equal topic.test.route, 'test'
-
+        assert.equal topic.test.routes[0], '/Test'
+        assert.equal topic.test.params.id, 1
+        
+    'a camelCase route': 
+      topic: -> capture.view.test.toTitle("/ACamelCaseView")
+    
+      'should generate a title with leading Capital and spaces': (topic) ->
+        assert.equal topic, 'A camel case view'
   .run()
   
