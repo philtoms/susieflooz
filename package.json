@@ -1,9 +1,9 @@
 {
-  "name": "ljs",
+  "name": "susieflooz",
   "description": "Static Website",
   "version": "0.0.1",
   "author": "Phil Toms <phil.toms@hotmail.co.uk>",
-  "repository": {"type": "git", "url": "git://github.com/philtoms/ljs.git"},
+  "repository": {"type": "git", "url": "git://github.com/philtoms/susieflooz.git"},
   "dependencies": {
     "coffee-script": "1.2.0",
     "zappa": "> 0.3.0",
@@ -14,7 +14,10 @@
     "node-uuid": "1.2.0",
     "uglify-js": "1.1.x",
     "nodemailer": "0.3.9"
-    "vows": "0.6.2"
-    "injectr": "0.3.1"
+  },
+  "devDependencies":{
+    "vows": "0.6.2",
+    "injectr": "0.3.1",
+    "jsdom": "0.2.13"
   }
 }

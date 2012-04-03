@@ -1,4 +1,4 @@
-susieflooz = (port) ->
+susieflooz = (port, fn) ->
  require('./myZappa') port, 'blog.db', ->
 
   @use @express.bodyParser({uploadDir:'./public/uploads'}), @app.router, 'static', 'cookies'
@@ -28,5 +28,7 @@ susieflooz = (port) ->
       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
     })();
   '''
-
+  
+  if fn then fn()
+  
 module.exports = susieflooz

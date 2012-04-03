@@ -23,12 +23,12 @@ myZappa = (port,db,app) ->
     @data = null
     viewsync = null
     appData = null
-    controllers = 
-      default: (require './controllers/default') || (store, route, cb) ->
+    models = 
+      default: (require './models/default') || (store, route, cb) ->
         if cb
           store.find store.page, (e,d) -> cb(e,d)
 
-    controllers.default @store
+    models.default @store
     
     @store.get 'app', (err,data) =>
       if (err) then console.log err.toString()
@@ -42,18 +42,18 @@ myZappa = (port,db,app) ->
           route: toRoute t
           name:  toName t
           title: toTitle t
+
         r=routes[i]
         do(r) =>
           
           try
-            ctrlr = controllers[r.name] = (require './controllers/'+r.name) || controllers.default
+            model = models[r.name] = (require './models/'+r.name) || models.default
           catch err
-            ctrlr = controllers.default
+            model = models.default
           
           #use this syntax to get a variable into a key
           routeHandler = {} 
-          routeHandler[r.route+':id?'] = ->
-
+          routeHandler[r.route+':id([0-9]+)?'] = ->
             view = {}
             view[r.name] =
               params: @params
@@ -62,7 +62,7 @@ myZappa = (port,db,app) ->
               appData: appData
               viewsync: viewsync
 
-            ctrlr store, view[r.name], (err) =>
+            model store, view[r.name], (err) =>
               if (err) then console.log err.toString()
               @render view
             

@@ -11,7 +11,10 @@ data = (d,s) ->
     [].slice.apply this, [x,y]
 
   @find = (fn) -> 
-     return ([].filter.call this, fn)[0]
+     return ([].filter.call this, fn)
+
+  @first = (fn) -> 
+     return @find(fn)[0] ?=null
 
   # convert this to array, sorted if available
   d = toArray d

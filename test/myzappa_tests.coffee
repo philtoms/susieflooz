@@ -90,7 +90,8 @@ vows
           for r of rh
             assert.isFunction rh[r]
 
-      
+      'B should be the index route': ->
+        assert.equal capture.view.c.routes[1].route, '/'
   
   .run()
   
